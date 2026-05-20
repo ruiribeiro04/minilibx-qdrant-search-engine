@@ -1,16 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { XIcon, LoaderIcon } from "lucide-react";
+import { LoaderIcon } from "lucide-react";
 import { getDoc } from "@/lib/search-api";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { MarkdownRenderer } from "@/components/shared/MarkdownRenderer";
 
 interface DocViewerProps {
   module: string;
+  highlightText?: string;
 }
 
-export function DocViewer({ module }: DocViewerProps) {
+export function DocViewer({ module, highlightText }: DocViewerProps) {
   const [content, setContent] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,8 +38,12 @@ export function DocViewer({ module }: DocViewerProps) {
   }
 
   return (
-    <div className="doc-viewer p-4 text-sm leading-relaxed">
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content ?? ""}</ReactMarkdown>
+    <div className="p-5">
+      <MarkdownRenderer
+        content={content ?? ""}
+        variant="docs"
+        highlightText={highlightText}
+      />
     </div>
   );
 }

@@ -1,3 +1,5 @@
+import threading
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from qdrant_client import models
@@ -24,6 +26,7 @@ class SearchResult(BaseModel):
 class QdrantService:
     def __init__(self):
         self._client = None
+        self._lock = threading.Lock()
 
     def _get_client(self):
         if self._client is not None:
@@ -45,49 +48,50 @@ class QdrantService:
             return False
 
     def search(self, query: str, limit: int = 10) -> list[SearchResult]:
-        client = self._get_client()
-        hits = client.query_points(
-            collection_name=QDRANT_COLLECTION,
-            query=models.Document(text=query, model=COLBERT_MODEL),
-            using="colbert",
-            prefetch=[
-                models.Prefetch(
-                    query=models.Document(text=query, model=DENSE_MODEL),
-                    using="dense",
-                    limit=100,
-                ),
-                models.Prefetch(
-                    query=models.Document(text=query, model=SPARSE_MODEL),
-                    using="sparse",
-                    limit=100,
-                ),
-            ],
-            limit=limit,
-            with_payload=True,
-        )
-        results = []
-        seen = set()
-        for point in hits.points:
-            payload = point.payload or {}
-            module = payload.get("module", "")
-            page_title = payload.get("page_title", "")
-            section_title = payload.get("section_title", "")
-            chunk_text = payload.get("chunk_text", "")
-            section_url = payload.get("section_url", "")
-            key = (module, section_title, chunk_text[:100])
-            if key in seen:
-                continue
-            seen.add(key)
-            results.append(
-                SearchResult(
-                    title=section_title or page_title or module,
-                    module=module,
-                    content=chunk_text,
-                    score=point.score,
-                    url=section_url or f"/api/docs/{module}",
-                )
+        with self._lock:
+            client = self._get_client()
+            hits = client.query_points(
+                collection_name=QDRANT_COLLECTION,
+                query=models.Document(text=query, model=COLBERT_MODEL),
+                using="colbert",
+                prefetch=[
+                    models.Prefetch(
+                        query=models.Document(text=query, model=DENSE_MODEL),
+                        using="dense",
+                        limit=100,
+                    ),
+                    models.Prefetch(
+                        query=models.Document(text=query, model=SPARSE_MODEL),
+                        using="sparse",
+                        limit=100,
+                    ),
+                ],
+                limit=limit,
+                with_payload=True,
             )
-        return results
+            results = []
+            seen = set()
+            for point in hits.points:
+                payload = point.payload or {}
+                module = payload.get("module", "")
+                page_title = payload.get("page_title", "")
+                section_title = payload.get("section_title", "")
+                chunk_text = payload.get("chunk_text", "")
+                section_url = payload.get("section_url", "")
+                key = (module, section_title, chunk_text[:100])
+                if key in seen:
+                    continue
+                seen.add(key)
+                results.append(
+                    SearchResult(
+                        title=section_title or page_title or module,
+                        module=module,
+                        content=chunk_text,
+                        score=point.score,
+                        url=section_url or f"/api/docs/{module}",
+                    )
+                )
+            return results
 
     def get_document(self, module: str) -> str | None:
         path = DATA_DIR / f"{module}.md"

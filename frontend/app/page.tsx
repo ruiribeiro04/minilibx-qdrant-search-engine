@@ -2,8 +2,8 @@
 
 import { useCallback } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { WelcomeScreen } from "@/components/search/WelcomeScreen";
-import { ResultsPage } from "@/components/search/ResultsPage";
+import { WelcomeView } from "@/components/search/WelcomeView";
+import { ResultsView } from "@/components/search/ResultsView";
 import { AiModeView } from "@/components/ai/AiModeView";
 import { SidePanel } from "@/components/panel/SidePanel";
 import { useAppStore } from "@/lib/store";
@@ -11,10 +11,13 @@ import { searchDocs } from "@/lib/search-api";
 
 export default function Home() {
   const activeMode = useAppStore((s) => s.activeMode);
+  const inputQuery = useAppStore((s) => s.inputQuery);
   const currentQuery = useAppStore((s) => s.currentQuery);
+  const setInputQuery = useAppStore((s) => s.setInputQuery);
   const setCurrentQuery = useAppStore((s) => s.setCurrentQuery);
   const setSearchResults = useAppStore((s) => s.setSearchResults);
   const setIsSearching = useAppStore((s) => s.setIsSearching);
+  const clearSearch = useAppStore((s) => s.clearSearch);
 
   const handleSearch = useCallback(async (q: string) => {
     setCurrentQuery(q);
@@ -34,16 +37,19 @@ export default function Home() {
       <SidePanel>
         {activeMode === "search" ? (
           currentQuery ? (
-            <ResultsPage
-              query={currentQuery}
-              onQueryChange={setCurrentQuery}
+            <ResultsView
+              query={inputQuery}
+              onInputChange={setInputQuery}
               onSubmit={handleSearch}
+              onClear={clearSearch}
             />
           ) : (
-            <WelcomeScreen
-              query={currentQuery}
-              onQueryChange={setCurrentQuery}
+            <WelcomeView
+              query={inputQuery}
+              onInputChange={setInputQuery}
               onSubmit={handleSearch}
+              onClear={clearSearch}
+              isExpanded={false}
             />
           )
         ) : (

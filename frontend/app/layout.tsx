@@ -17,6 +17,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-dvh">
+      <head>
+        <link
+          href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=cabinet-grotesk@800&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className="h-dvh font-sans">
         <MyRuntimeProvider>{children}</MyRuntimeProvider>
       </body>

@@ -91,10 +91,10 @@ export function SearchAssist({ query }: SearchAssistProps) {
 
   if (aiFrequency === "on-demand" && !showButton && !summary) {
     return (
-      <div className="rounded-lg border p-3">
+      <div className="rounded-xl border border-border/40 bg-surface p-3">
         <button
           onClick={() => { setShowButton(true); fetchSummary(query); }}
-          className="text-sm text-primary hover:underline"
+          className="text-sm font-medium text-primary hover:underline"
         >
           Show AI Summary
         </button>
@@ -108,7 +108,12 @@ export function SearchAssist({ query }: SearchAssistProps) {
   };
 
   return (
-    <div className="rounded-lg border p-4">
+    <div className="mx-4 mt-3 mb-2 rounded-xl bg-primary/6 border border-primary/15 p-5">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-xs font-bold tracking-widest uppercase text-primary bg-primary/12 px-2 py-0.5 rounded-full">
+          AI Answer
+        </span>
+      </div>
       {isStreaming && !summary ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <LoaderIcon className="size-4 animate-spin" />
@@ -121,14 +126,14 @@ export function SearchAssist({ query }: SearchAssistProps) {
               {summary}
             </p>
             {!expanded && summary.length > 120 && (
-              <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background to-transparent" />
+              <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-primary/6 to-transparent" />
             )}
           </div>
-          <div className="mt-2 flex items-center gap-2">
+          <div className="mt-3 flex items-center gap-3">
             {summary.length > 120 && (
               <button
                 onClick={() => setExpanded(!expanded)}
-                className="flex items-center gap-1 text-xs text-primary hover:underline"
+                className="flex items-center gap-1 text-xs font-medium text-primary hover:underline"
               >
                 {expanded ? "Less" : "More"}
                 <ChevronDownIcon className={"size-3 transition-transform " + (expanded ? "rotate-180" : "")} />
@@ -136,7 +141,7 @@ export function SearchAssist({ query }: SearchAssistProps) {
             )}
             <button
               onClick={handleChat}
-              className="flex items-center gap-1 text-xs text-primary hover:underline"
+              className="flex items-center gap-1 text-xs font-medium text-primary hover:underline"
             >
               <MessageSquareIcon className="size-3" />
               Chat
@@ -151,15 +156,18 @@ export function SearchAssist({ query }: SearchAssistProps) {
                   setActiveMode("ai");
                 }
               }}
-              className="mt-3 flex gap-2 border-t pt-3"
+              className="mt-4 flex gap-2 border-t border-primary/10 pt-3"
             >
               <input
                 value={followUp}
                 onChange={(e) => setFollowUp(e.target.value)}
                 placeholder="Ask a follow-up..."
-                className="flex-1 rounded-md border px-3 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/20"
+                className="flex-1 rounded-lg border border-border/50 bg-surface/50 px-3 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/30 transition-shadow duration-[var(--transition-interactive)]"
               />
-              <button type="submit" className="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground">
+              <button
+                type="submit"
+                className="rounded-lg bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow-sm shadow-primary/20 hover:bg-primary-hover transition-[background] duration-[var(--transition-interactive)]"
+              >
                 Ask
               </button>
             </form>

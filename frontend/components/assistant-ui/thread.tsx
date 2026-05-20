@@ -38,16 +38,14 @@ export function Thread() {
       className="flex h-full flex-col bg-background text-base"
       style={{
         "--thread-max-width": "48rem",
-        "--accent-color": "#000000",
-        "--accent-foreground": "#ffffff",
+        "--accent-color": "var(--primary)",
+        "--accent-foreground": "var(--primary-foreground)",
       } as React.CSSProperties}
     >
       <ThreadPrimitive.Viewport
         turnAnchor="top"
         className="relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll scroll-smooth px-4 pt-4"
       >
-        
-
         <ThreadPrimitive.Messages
           components={{
             UserMessage,
@@ -57,7 +55,6 @@ export function Thread() {
         />
 
         <ThreadPrimitive.ViewportFooter className="sticky bottom-0 mx-auto mt-auto flex w-full max-w-[var(--thread-max-width)] flex-col gap-4 overflow-visible rounded-t-3xl bg-background pb-4">
-          
           <Composer />
         </ThreadPrimitive.ViewportFooter>
       </ThreadPrimitive.Viewport>
@@ -67,11 +64,11 @@ export function Thread() {
 function Composer() {
   return (
     <ComposerPrimitive.Root className="relative flex w-full flex-col">
-      <ComposerPrimitive.AttachmentDropzone className="flex w-full flex-col rounded-3xl border border-input bg-background px-1 pt-2 outline-none transition-shadow has-[textarea:focus-visible]:border-ring has-[textarea:focus-visible]:ring-2 has-[textarea:focus-visible]:ring-ring/20 data-[dragging=true]:border-ring data-[dragging=true]:border-dashed data-[dragging=true]:bg-accent/50">
+      <ComposerPrimitive.AttachmentDropzone className="flex w-full flex-col rounded-2xl border border-border/60 bg-surface/80 backdrop-blur-lg px-1 pt-2 outline-none transition-[border-color,box-shadow] duration-[var(--transition-interactive)] has-[textarea:focus-visible]:border-primary/40 has-[textarea:focus-visible]:shadow-lg has-[textarea:focus-visible]:shadow-primary/5 data-[dragging=true]:border-primary data-[dragging=true]:border-dashed data-[dragging=true]:bg-accent/50">
         <ComposerAttachments />
         <ComposerPrimitive.Input
           placeholder="Send a message..."
-          className="mb-1 max-h-32 min-h-14 w-full resize-none bg-transparent px-4 pt-2 pb-3 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-0"
+          className="mb-1 max-h-32 min-h-14 w-full resize-none bg-transparent px-4 pt-2 pb-3 text-sm outline-none placeholder:text-muted-foreground/60 focus-visible:ring-0"
           rows={1}
           autoFocus
           aria-label="Message input"
@@ -95,7 +92,7 @@ function ComposerAction() {
             type="submit"
             variant="default"
             size="icon"
-            className="size-8 rounded-full"
+            className="size-8 rounded-full shadow-md shadow-primary/20"
             style={{
               backgroundColor: "var(--accent-color)",
               color: "var(--accent-foreground)",
@@ -137,7 +134,7 @@ function UserMessage() {
       <UserMessageAttachments />
 
       <div className="relative col-start-2 min-w-0">
-        <div className="rounded-3xl bg-muted px-4 py-2.5 break-words text-foreground">
+        <div className="rounded-2xl bg-accent px-4 py-2.5 break-words text-foreground">
           <MessagePrimitive.Parts />
         </div>
         <div className="absolute top-1/2 left-0 -translate-x-full -translate-y-1/2 pr-2">
@@ -169,7 +166,7 @@ function UserActionBar() {
 function EditComposer() {
   return (
     <MessagePrimitive.Root className="mx-auto flex w-full max-w-[var(--thread-max-width)] flex-col px-2 py-3">
-      <ComposerPrimitive.Root className="ml-auto flex w-full max-w-[85%] flex-col rounded-3xl bg-muted">
+      <ComposerPrimitive.Root className="ml-auto flex w-full max-w-[85%] flex-col rounded-2xl bg-accent">
         <ComposerPrimitive.Input
           className="min-h-14 w-full resize-none bg-transparent p-4 text-foreground text-sm outline-none"
           autoFocus
@@ -222,7 +219,7 @@ function AssistantMessage() {
 function MessageError() {
   return (
     <MessagePrimitive.Error>
-      <ErrorPrimitive.Root className="mt-2 rounded-md border border-destructive bg-destructive/10 p-3 text-destructive text-sm dark:bg-destructive/5 dark:text-red-200">
+      <ErrorPrimitive.Root className="mt-2 rounded-lg border border-destructive/40 bg-destructive/8 p-3 text-destructive text-sm">
         <ErrorPrimitive.Message className="line-clamp-2" />
       </ErrorPrimitive.Root>
     </MessagePrimitive.Error>

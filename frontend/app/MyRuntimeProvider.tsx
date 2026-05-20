@@ -7,37 +7,41 @@ import {
 } from "@assistant-ui/react";
 import { HttpAgent } from "@ag-ui/client";
 import { useAgUiRuntime } from "@assistant-ui/react-ag-ui";
+import { useAppStore } from "@/lib/store";
 
 type StoredThread = {
   id: string;
   messages: readonly ThreadMessage[];
 };
 
-/**
- * AG-UI runtime with threadList adapter for multi-thread support.
- */
 export function MyRuntimeProvider({
   children,
 }: Readonly<{ children: ReactNode }>) {
   const agentUrl =
-    (process.env.NEXT_PUBLIC_AGUI_AGENT_URL as string | undefined) ??
-    "http://localhost:8000/api/agent";
+    (process.env.NEXT_PUBLIC_AGUI_AGENT_URL as string | undefined) ?? "http://localhost:8000/api/agent";
+  const pendingChatContext = useAppStore((s) => s.pendingChatContext);
+  const setPendingChatContext = useAppStore((s) => s.setPendingChatContext);
 
-  // Simple in-memory thread storage
   const threadsRef = useRef<Map<string, StoredThread>>(new Map());
+  const pendingCtxToInject = useRef<typeof pendingChatContext>(null);
   const [currentThreadId, setCurrentThreadId] = useState<string>(() => {
     const id = crypto.randomUUID();
     threadsRef.current.set(id, { id, messages: [] });
     return id;
   });
 
+  useEffect(() => {
+    if (pendingChatContext && !pendingCtxToInject.current) {
+      pendingCtxToInject.current = pendingChatContext;
+      setPendingChatContext(null);
+    }
+  }, [pendingChatContext, setPendingChatContext]);
+
   const agent = useMemo(() => {
     return new HttpAgent({
       url: agentUrl,
       threadId: currentThreadId,
-      headers: {
-        Accept: "text/event-stream",
-      },
+      headers: { Accept: "text/event-stream" },
     });
   }, [agentUrl, currentThreadId]);
 
@@ -74,7 +78,49 @@ export function MyRuntimeProvider({
     },
   });
 
-  // Persist messages to threadsRef when they change
+  useEffect(() => {
+    const ctx = pendingCtxToInject.current;
+    if (ctx) {
+      pendingCtxToInject.current = null;
+      const msgs: ThreadMessage[] = [
+        {
+          id: crypto.randomUUID(),
+          role: "user",
+          content: [{ type: "text" as const, text: ctx.query }],
+          attachments: [],
+          createdAt: new Date(),
+          metadata: { custom: {} },
+        },
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: [{ type: "text" as const, text: ctx.summary }],
+          status: { type: "complete" as const, reason: "stop" as const },
+          createdAt: new Date(),
+          metadata: {
+            unstable_state: {},
+            unstable_annotations: [],
+            unstable_data: [],
+            steps: [],
+            custom: {},
+          },
+        },
+      ];
+      if (ctx.followUp) {
+        msgs.push({
+          id: crypto.randomUUID(),
+          role: "user",
+          content: [{ type: "text" as const, text: ctx.followUp }],
+          attachments: [],
+          createdAt: new Date(),
+          metadata: { custom: {} },
+        });
+      }
+      runtime.thread.reset(msgs);
+      console.debug("[agui] Injected pre-populated messages:", msgs.length);
+    }
+  }, [runtime, pendingChatContext]);
+
   useEffect(() => {
     return runtime.thread.subscribe(() => {
       threadsRef.current.set(currentThreadId, {
