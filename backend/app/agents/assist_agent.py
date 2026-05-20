@@ -51,6 +51,12 @@ def _assist_node(state: MessagesState) -> dict:
         ]
     )
 
+    sources = [
+        {"id": i, "title": r.title, "module": r.module, "url": r.url}
+        for i, r in enumerate(search_results, 1)
+    ]
+    response.additional_kwargs["sources"] = sources
+
     return {"messages": [response]}
 
 
@@ -68,6 +74,32 @@ assist_agent = LangGraphAgent(
 
 
 def register_assist_agent(app):
-    from ag_ui_langgraph import add_langgraph_fastapi_endpoint
+    import json
 
-    add_langgraph_fastapi_endpoint(app, assist_agent, "/api/assist-agent")
+    from fastapi import Request
+    from fastapi.responses import StreamingResponse
+    from ag_ui.encoder import EventEncoder
+
+    @app.post("/api/assist-agent")
+    async def assist_endpoint(input_data, request: Request):
+        encoder = EventEncoder(accept=request.headers.get("accept"))
+        request_agent = assist_agent.clone()
+
+        async def event_generator():
+            async for event in request_agent.run(input_data):
+                yield encoder.encode(event)
+
+            thread_id = getattr(input_data, "thread_id", None)
+            if thread_id:
+                config = {"configurable": {"thread_id": thread_id}}
+                state = await request_agent.graph.aget_state(config)
+                msgs = state.values.get("messages", [])
+                if msgs:
+                    last = msgs[-1]
+                    s = getattr(last, "additional_kwargs", {}).get("sources")
+                    if s:
+                        yield f"data: {json.dumps({'type': 'SOURCES', 'sources': s})}\n\n"
+
+        return StreamingResponse(
+            event_generator(), media_type=encoder.get_content_type()
+        )

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronDownIcon, MessageSquareIcon, LoaderIcon } from "lucide-react";
 import { useAppStore } from "@/lib/store";
+import { MarkdownRenderer } from "@/components/shared/MarkdownRenderer";
 
 interface SearchAssistProps {
   query: string;
@@ -18,6 +19,7 @@ export function SearchAssist({ query }: SearchAssistProps) {
   const [expanded, setExpanded] = useState(false);
   const [followUp, setFollowUp] = useState("");
   const [showButton, setShowButton] = useState(false);
+  const [sources, setSources] = useState<Array<{id: number; title: string; module: string; url: string}>>([]);
   const abortRef = useRef<AbortController | null>(null);
 
   const fetchSummary = useCallback(async (q: string) => {
@@ -27,6 +29,7 @@ export function SearchAssist({ query }: SearchAssistProps) {
 
     setIsStreaming(true);
     setSummary("");
+    setSources([]);
     setExpanded(false);
 
     try {
@@ -65,6 +68,9 @@ export function SearchAssist({ query }: SearchAssistProps) {
               if (event.type === "TEXT_MESSAGE_CONTENT" && event.delta) {
                 accumulated += event.delta;
                 setSummary(accumulated);
+              }
+              if (event.type === "SOURCES" && event.sources) {
+                setSources(event.sources);
               }
             } catch {}
           }
@@ -122,9 +128,9 @@ export function SearchAssist({ query }: SearchAssistProps) {
       ) : (
         <>
           <div className={expanded ? "" : "relative"}>
-            <p className={"text-sm leading-relaxed " + (expanded ? "" : "line-clamp-3")}>
-              {summary}
-            </p>
+            <div className={expanded ? "" : "line-clamp-3"}>
+              <MarkdownRenderer content={summary} variant="chat" sources={sources} />
+            </div>
             {!expanded && summary.length > 120 && (
               <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-primary/6 to-transparent" />
             )}

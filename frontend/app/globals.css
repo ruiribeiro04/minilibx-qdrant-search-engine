@@ -2,8 +2,6 @@
 @import "tw-animate-css";
 @import "tw-shimmer";
 
-@custom-variant dark (&:is(.dark *));
-
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -59,59 +57,6 @@
 
 :root {
   --radius: 0.625rem;
-  --background: #f7f6f2;
-  --surface: #f9f8f5;
-  --surface-2: #fbfbf9;
-  --foreground: #28251d;
-  --card: #f9f8f5;
-  --card-foreground: #28251d;
-  --popover: #f9f8f5;
-  --popover-foreground: #28251d;
-  --primary: #01696f;
-  --primary-hover: #0c4e54;
-  --primary-foreground: #f9f8f4;
-  --secondary: #f3f0ec;
-  --secondary-foreground: #28251d;
-  --muted: #f3f0ec;
-  --muted-foreground: #7a7974;
-  --accent: #f3f0ec;
-  --accent-foreground: #28251d;
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: #d4d1ca;
-  --input: #d4d1ca;
-  --ring: #01696f;
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: #f9f8f5;
-  --sidebar-foreground: #28251d;
-  --sidebar-primary: #01696f;
-  --sidebar-primary-foreground: #f9f8f4;
-  --sidebar-accent: #f3f0ec;
-  --sidebar-accent-foreground: #28251d;
-  --sidebar-border: #d4d1ca;
-  --sidebar-ring: #01696f;
-  --shadow-sm: 0 1px 2px oklch(0.2 0.01 80 / 0.06);
-  --shadow-md: 0 4px 12px oklch(0.2 0.01 80 / 0.10);
-  --shadow-lg: 0 16px 40px oklch(0.2 0.01 80 / 0.16);
-  --shadow-xl: 0 32px 64px oklch(0.2 0.01 80 / 0.20);
-  --transition-interactive: 180ms cubic-bezier(0.16, 1, 0.3, 1);
-  --aui-accent: #01696f;
-  --aui-accent-foreground: #f9f8f4;
-  --aui-background: #f7f6f2;
-  --aui-foreground: #28251d;
-  --aui-muted-foreground: #7a7974;
-  --aui-border: #d4d1ca;
-  --aui-user-message: #f3f0ec;
-  --aui-composer: #f3f0ec;
-  --aui-max-width: 48rem;
-  --aui-border-radius: 1.5rem;
-  --aui-font-family: 'Satoshi', system-ui, sans-serif;
-}
-
-.dark {
   --background: #0f0e0d;
   --surface: #161514;
   --surface-2: #1c1b19;
@@ -150,6 +95,7 @@
   --shadow-md: 0 4px 12px oklch(0 0 0 / 0.4);
   --shadow-lg: 0 16px 40px oklch(0 0 0 / 0.5);
   --shadow-xl: 0 32px 64px oklch(0 0 0 / 0.6);
+  --transition-interactive: 180ms cubic-bezier(0.16, 1, 0.3, 1);
   --aui-accent: #4f98a3;
   --aui-accent-foreground: #1c1b19;
   --aui-background: #0f0e0d;
@@ -213,6 +159,71 @@
   border-radius: 0.25rem;
   padding: 0.125rem 0.25rem;
   margin: -0.125rem -0.25rem;
+}
+
+.citation-ref {
+  color: var(--primary);
+  font-size: 0.75em;
+  font-weight: 600;
+  cursor: pointer;
+  vertical-align: super;
+  line-height: 0;
+  transition: opacity 0.15s ease;
+}
+.citation-ref:hover {
+  opacity: 0.7;
+}
+
+.sources-panel {
+  border-top: 1px solid var(--border);
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+}
+
+.sources-panel-header {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-foreground);
+  margin-bottom: 0.5rem;
+}
+
+.sources-panel-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.5rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  font-size: 0.8rem;
+}
+.sources-panel-row:hover {
+  background: var(--accent);
+}
+
+.sources-panel-id {
+  color: var(--primary);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.sources-panel-title {
+  color: var(--foreground);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sources-panel-module {
+  color: var(--muted-foreground);
+  font-size: 0.7rem;
+  background: var(--accent);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  flex-shrink: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

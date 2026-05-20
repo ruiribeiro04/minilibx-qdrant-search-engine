@@ -26,14 +26,14 @@ export function WelcomeView({
         className="absolute inset-0 bg-cover bg-center z-0 transition-[filter] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
         style={{
           backgroundImage: "url('/imgs/backdrop.png')",
-          filter: isExpanded ? "blur(18px) brightness(0.35) saturate(0.7)" : "none",
+          filter: isExpanded ? "blur(18px) brightness(0.6) saturate(0.85)" : "none",
         }}
       >
         <div
           className="absolute inset-0 transition-[background] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
           style={{
             background: isExpanded
-              ? "oklch(0.04 0.01 250 / 0.75)"
+              ? "oklch(0.04 0.01 250 / 0.45)"
               : "linear-gradient(to bottom, oklch(0.08 0.01 250 / 0.35), oklch(0.05 0.01 250 / 0.55))",
           }}
         />
@@ -74,7 +74,7 @@ export function WelcomeView({
           className="flex flex-wrap justify-center gap-2 transition-opacity duration-400 ease-[cubic-bezier(0.16,1,0.3,1)]"
           style={{ opacity: isExpanded ? 0 : 1, pointerEvents: isExpanded ? "none" : "auto" }}
         >
-          <SuggestionChips onSelect={onSubmit} />
+          <SuggestionChips onSelect={onSubmit} variant="overlay" />
         </div>
       </div>
     </div>
