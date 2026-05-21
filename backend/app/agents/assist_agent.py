@@ -78,10 +78,11 @@ def register_assist_agent(app):
 
     from fastapi import Request
     from fastapi.responses import StreamingResponse
+    from ag_ui.core import RunAgentInput
     from ag_ui.encoder import EventEncoder
 
     @app.post("/api/assist-agent")
-    async def assist_endpoint(input_data, request: Request):
+    async def assist_endpoint(input_data: RunAgentInput, request: Request):
         encoder = EventEncoder(accept=request.headers.get("accept"))
         request_agent = assist_agent.clone()
 

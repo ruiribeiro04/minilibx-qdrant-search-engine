@@ -48,10 +48,10 @@ function withCitations(children: React.ReactNode, sources?: Source[]): React.Rea
       return processTextCitations(child, sources);
     }
     if (React.isValidElement<{ children?: React.ReactNode }>(child) && child.props.children) {
-      return React.cloneElement(child, {
-        ...child.props,
-        children: withCitations(child.props.children, sources),
-      });
+      return React.cloneElement(
+        child,
+        { children: withCitations(child.props.children, sources) }
+      );
     }
     return child;
   });
@@ -68,28 +68,55 @@ export function MarkdownRenderer({
   const highlightId = "chunk-highlight-target";
 
   useEffect(() => {
-    if (!highlightText || !containerRef.current) return;
-    const el = containerRef.current.querySelector(`#${highlightId}`);
-    if (el) {
-      setTimeout(() => {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 150);
+    if (!highlightText || variant !== "docs" || !containerRef.current) return;
+    const container = containerRef.current;
+    const existing = container.querySelector(`#${highlightId}`);
+    if (existing) {
+      setTimeout(() => existing.scrollIntoView({ behavior: "smooth", block: "center" }), 150);
+      return;
     }
-  }, [highlightText, content]);
+    const normalizedQuery = highlightText.replace(/\s+/g, " ");
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+    let node: Text | null;
+    while ((node = walker.nextNode() as Text | null)) {
+      const normalized = node.textContent?.replace(/\s+/g, " ") ?? "";
+      const idx = normalized.indexOf(normalizedQuery);
+      if (idx === -1) continue;
+      const range = document.createRange();
+      const textContent = node.textContent ?? "";
+      let charIdx = 0;
+      for (let i = 0; i < textContent.length; i++) {
+        if (textContent.slice(i).replace(/\s+/g, " ").startsWith(normalizedQuery)) {
+          charIdx = i;
+          break;
+        }
+      }
+      let endOffset = charIdx;
+      let matched = 0;
+      for (let i = charIdx; i < textContent.length && matched < normalizedQuery.length; i++) {
+        if (textContent[i].trim() || normalizedQuery[matched].trim()) {
+          endOffset = i + 1;
+          matched++;
+        } else {
+          endOffset = i + 1;
+        }
+      }
+      try {
+        range.setStart(node, charIdx);
+        range.setEnd(node, endOffset);
+        const span = document.createElement("span");
+        span.id = highlightId;
+        span.className = "chunk-highlight";
+        range.surroundContents(span);
+        setTimeout(() => span.scrollIntoView({ behavior: "smooth", block: "center" }), 150);
+      } catch {}
+      break;
+    }
+  }, [highlightText, content, variant]);
 
   const processContent = useCallback(
-    (text: string) => {
-      if (!highlightText || variant !== "docs") return text;
-      const normalized = text.replace(/\s+/g, " ");
-      const normalizedQuery = highlightText.replace(/\s+/g, " ");
-      const idx = normalized.indexOf(normalizedQuery);
-      if (idx === -1) return text;
-      const before = normalized.slice(0, idx);
-      const match = normalized.slice(idx, idx + normalizedQuery.length);
-      const after = normalized.slice(idx + normalizedQuery.length);
-      return `${before}<span id="${highlightId}" class="chunk-highlight">${match}</span>${after}`;
-    },
-    [highlightText, variant]
+    (text: string) => text,
+    []
   );
 
   return (
@@ -203,12 +230,7 @@ export function MarkdownRenderer({
           tr: ({ ...props }) => (
             <tr className="even:bg-accent/20 transition-colors" {...props} />
           ),
-          pre: ({ ...props }) => (
-            <pre
-              className="my-3 overflow-x-auto rounded-xl border border-border/40 bg-surface-2 p-4 text-xs leading-relaxed shadow-sm"
-              {...props}
-            />
-          ),
+          pre: ({ children }) => <>{children}</>,
           code: function Code({ className, children, ...props }) {
             const isBlock = className?.startsWith("language-");
             if (isBlock) {

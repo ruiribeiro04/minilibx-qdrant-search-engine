@@ -53,7 +53,32 @@ export function ResultsView({
           isExpanded={true}
         >
           <div className="py-1">
-            {sidePanelOpen && sidePanelModule ? (
+            <div style={sidePanelOpen && sidePanelModule ? { display: "none" } : undefined}>
+              <SearchAssist query={currentQuery} />
+
+              {isSearching ? (
+                <div className="flex items-center justify-center py-12 text-white/60">
+                  <LoaderIcon className="mr-2 size-4 animate-spin" />
+                  <span className="text-sm">Searching...</span>
+                </div>
+              ) : (
+                searchResults.map((r, i) => (
+                  <ResultCard key={i} result={r} query={currentQuery} />
+                ))
+              )}
+
+              {!isSearching && searchResults.length === 0 && currentQuery && (
+                <p className="py-12 text-center text-sm text-white/50">No results found.</p>
+              )}
+
+              {!isSearching && searchResults.length > 0 && (
+                <div className="px-5 py-4">
+                  <SuggestionChips onSelect={onSubmit} />
+                </div>
+              )}
+            </div>
+
+            {sidePanelOpen && sidePanelModule && (
               <div>
                 <div className="flex items-center gap-2 px-5 pt-3 pb-1">
                   <button
@@ -69,31 +94,6 @@ export function ResultsView({
                 </div>
                 <DocViewer module={sidePanelModule} highlightText={highlightChunk ?? undefined} />
               </div>
-            ) : (
-              <>
-                <SearchAssist query={currentQuery} />
-
-                {isSearching ? (
-                  <div className="flex items-center justify-center py-12 text-white/60">
-                    <LoaderIcon className="mr-2 size-4 animate-spin" />
-                    <span className="text-sm">Searching...</span>
-                  </div>
-                ) : (
-                  searchResults.map((r, i) => (
-                    <ResultCard key={i} result={r} query={currentQuery} />
-                  ))
-                )}
-
-                {!isSearching && searchResults.length === 0 && currentQuery && (
-                  <p className="py-12 text-center text-sm text-white/50">No results found.</p>
-                )}
-
-                {!isSearching && searchResults.length > 0 && (
-                  <div className="px-5 py-4">
-                    <SuggestionChips onSelect={onSubmit} />
-                  </div>
-                )}
-              </>
             )}
           </div>
         </ExpandingSearchPanel>

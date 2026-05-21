@@ -118,6 +118,15 @@ export function MyRuntimeProvider({
       }
       runtime.thread.reset(msgs);
       console.debug("[agui] Injected pre-populated messages:", msgs.length);
+      if (ctx.followUp) {
+        setTimeout(() => {
+          try {
+            runtime.thread.composer.send();
+          } catch (e) {
+            console.debug("[agui] Auto-send failed:", e);
+          }
+        }, 100);
+      }
     }
   }, [runtime, pendingChatContext]);
 

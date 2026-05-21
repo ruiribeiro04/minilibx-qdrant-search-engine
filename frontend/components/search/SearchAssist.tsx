@@ -119,6 +119,12 @@ export function SearchAssist({ query }: SearchAssistProps) {
         <span className="text-xs font-bold tracking-widest uppercase text-primary bg-primary/12 px-2 py-0.5 rounded-full">
           AI Answer
         </span>
+        {isStreaming && summary && (
+          <span className="flex items-center gap-1.5 text-[10px] font-medium text-primary/70">
+            <span className="size-1.5 rounded-full bg-primary animate-pulse" />
+            Generating...
+          </span>
+        )}
       </div>
       {isStreaming && !summary ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
