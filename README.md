@@ -6,29 +6,58 @@ Dual-mode web interface: a Google-style search engine with an optional AI summar
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────┐
-│  Frontend (Next.js 16 · React 19 · assistant-ui) │
-│                                                   │
-│  ┌─────────────┐  ┌──────────────┐  ┌──────────┐ │
-│  │ Search Mode │  │   AI Mode    │  │ Side     │ │
-│  │ (React)     │  │ (Thread/AGUI)│  │ Panel    │ │
-│  └──────┬──────┘  └──────┬───────┘  └────┬─────┘ │
-└─────────┼────────────────┼───────────────┼───────┘
-          │                │               │
-          ▼                ▼               ▼
-┌─────────────────────────────────────────────────┐
-│  Backend (FastAPI · LangGraph · ag-ui-langgraph) │
-│                                                   │
-│  GET /api/search     ──▶ Qdrant hybrid search    │
-│  GET /api/docs/:mod  ──▶ Static markdown docs    │
-│  POST /api/assist-agent ─▶ Lightweight LLM agent │
-│  POST /api/agent     ──▶ Full ReAct agent (5 tools) │
-└──────────────────────┬──────────────────────────┘
-                       ▼
-         ┌──────────────────────────┐
-         │  Qdrant (dense + sparse) │
-         └──────────────────────────┘
+```mermaid
+flowchart TB
+    classDef ui fill:#1e3a5f,stroke:#3b82f6,color:#fff,stroke-width:2px
+    classDef ep fill:#1a3a2a,stroke:#22c55e,color:#e2e8f0,stroke-width:2px
+    classDef agent fill:#2d1b4e,stroke:#8b5cf6,color:#e2e8f0,stroke-width:2px
+    classDef db fill:#0f2a3f,stroke:#06b6d4,color:#e2e8f0,stroke-width:2px
+    classDef docs fill:#3b2f1a,stroke:#f59e0b,color:#e2e8f0,stroke-width:2px
+
+    User([User])
+
+    subgraph Frontend["Frontend (Next.js 16 · React 19 · assistant-ui)"]
+        direction LR
+        Search[Search Mode]
+        AI[AI Mode]
+        Side[Side Panel]
+    end
+
+    subgraph Backend["Backend (FastAPI · LangGraph · ag-ui-langgraph)"]
+        SearchEP[/GET /api/search/]
+        DocsEP[/GET /api/docs/module/]
+        AssistEP[/POST /api/assist-agent/]
+        AgentEP[/POST /api/agent/]
+    end
+
+    subgraph Qdrant["Qdrant (hybrid search)"]
+        Dense[(Dense\nBGE-small-en-v1.5)]
+        Sparse[(Sparse\nBM25)]
+        Colbert[(Rerank\ncolbertv2.0)]
+    end
+
+    subgraph Data["Data Layer"]
+        Docs[("Markdown Docs\n9 modules")]
+    end
+
+    User --> Search & AI & Side
+    Search --> SearchEP
+    Search -.->|AI summary| AssistEP
+    AI --> AgentEP
+    Side --> DocsEP
+    SearchEP --> Dense & Sparse
+    Dense & Sparse --> Colbert
+    DocsEP --> Docs
+    AssistEP -.-> AssistAgent{{Assist Agent\ngpt-4o-mini}}
+    AgentEP -.-> FullAgent{{Full ReAct Agent\ngpt-4o · 5 tools}}
+    AssistAgent -.->|query search| SearchEP
+    FullAgent -.->|search_docs tool| SearchEP
+
+    class User,Search,AI,Side ui
+    class SearchEP,DocsEP,AssistEP,AgentEP ep
+    class AssistAgent,FullAgent agent
+    class Dense,Sparse,Colbert db
+    class Docs docs
 ```
 
 **Two separate agents:**
@@ -96,14 +125,15 @@ backend/app/
     ├── assist_agent.py     # Lightweight summary agent
     └── full_agent.py       # Full ReAct agent with 5 tools
 
-frontend/
+frontend/                         # See frontend/README.md for details
 ├── app/
 │   ├── page.tsx            # Dual-mode layout (Search / AI)
 │   ├── layout.tsx          # Root layout with runtime provider
 │   └── MyRuntimeProvider.tsx  # AG-UI runtime with HttpAgent
 ├── components/
 │   ├── layout/             # AppLayout, ModeTabs
-│   ├── search/             # WelcomeScreen, SearchBar, ResultCard, ResultsPage, SearchAssist, SuggestionChips
+│   ├── search/             # WelcomeView, SearchBar, ResultCard, ResultsView, SearchAssist, SuggestionChips, ExpandingSearchPanel
+│   ├── shared/             # MarkdownRenderer
 │   ├── ai/                 # AiModeView, CitationLink, FollowUpChips
 │   │   └── generative-ui/  # ApiReferenceCard, DocsCard, CodeExample
 │   ├── panel/              # SidePanel, DocViewer
@@ -136,7 +166,7 @@ capstone.ipynb              # Original data pipeline notebook
 |---|---|---|
 | `QDRANT_URL` | — | Qdrant cluster URL |
 | `QDRANT_API_KEY` | — | Qdrant API key |
-| `QDRANT_COLLECTION` | `minilibx_docs` | Collection name |
+| `QDRANT_COLLECTION` | `docs_search` | Collection name |
 | `LLM_BASE_URL` | `https://api.openai.com/v1` | OpenAI-compatible API base URL |
 | `LLM_API_KEY` | — | LLM API key |
 | `LLM_MODEL` | `gpt-4o` | Model for full agent |
@@ -150,6 +180,7 @@ capstone.ipynb              # Original data pipeline notebook
 | `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | Backend REST API URL |
 | `NEXT_PUBLIC_AGUI_AGENT_URL` | `http://localhost:8000/api/agent` | Full agent AG-UI endpoint |
 | `NEXT_PUBLIC_AGUI_ASSIST_URL` | `http://localhost:8000/api/assist-agent` | Assist agent AG-UI endpoint |
+| `OPENAI_API_KEY` | — | LLM API key (for standalone `server/agent.py`) |
 
 ## Makefile Commands
 
