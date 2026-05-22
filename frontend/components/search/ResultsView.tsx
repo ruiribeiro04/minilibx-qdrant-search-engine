@@ -44,7 +44,7 @@ export function ResultsView({
         />
       </div>
 
-      <div className="relative z-5 flex flex-col items-center text-center gap-8 w-full max-w-[720px] px-8 py-8 -translate-y-8">
+      <div className="relative z-5 flex flex-col items-center gap-8 w-full max-w-[720px] px-8 py-8 -translate-y-8">
         <ExpandingSearchPanel
           query={query}
           onInputChange={onInputChange}
