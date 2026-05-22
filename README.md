@@ -199,4 +199,4 @@ The original data pipeline lives in `capstone.ipynb`. It fetches MiniLibX source
 
 ## License
 
-MIT
+GNU Affero General Public License v3.0
